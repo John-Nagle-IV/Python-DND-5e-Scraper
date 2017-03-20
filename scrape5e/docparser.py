@@ -20,6 +20,10 @@ def extract_table_data(table_element):
         else:
             data = [table_data.text for table_data in table_row.findAll("td")]
             field_obj.setdefault(current_title, []).append(dict(zip(current_fieldnames, data)))
+    caption = table_element.find("caption")
+    if current_title == "default" and caption:
+        field_obj[caption.text.replace("Table: ", "")] = field_obj["default"]
+        del field_obj["default"]
     return field_obj
 
 
