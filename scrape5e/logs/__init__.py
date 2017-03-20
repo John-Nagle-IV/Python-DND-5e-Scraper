@@ -1,0 +1,2 @@
+from mylogs import application_log
+from mylogs import remove_all_logs
