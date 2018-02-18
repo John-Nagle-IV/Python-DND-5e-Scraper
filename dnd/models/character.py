@@ -1,9 +1,73 @@
-import alignment
 import copy
-import gods
+import json
 
-from constants import *
-from equipment import Equipment
+from dnd.models.constants import *
+
+
+class BaseModel(object):
+    export = []
+    @classmethod
+    def from_json(cls, json_str):
+        return cls.from_dict(json.loads(json_str))
+
+    def from_dict(cls, dic):
+        return cls(**dic)
+
+    def __init__(self, *args, **kwargs):
+        for index, arg in enumerate(args):
+            try:
+                setattr(self, export[index], arg)
+            except IndexError:
+                raise
+        for attr, val in kwargs.items():
+            if attr in self.export:
+                setattr(self, attr, val)
+
+    def __dict__(self):
+        return {attr:getattr(self, attr, None) for attr in self.export}
+
+    def serialize(self):
+        return json.dumps(self.__dict__())
+
+
+class Equipment(object):
+    def __init__(self):
+        super(Equipment, self).__init__()
+        self.ability_score_bonus = AbilityScore()
+        self.ac_bonus = 0
+        self.name = ""
+        self.effect = ""
+        self.max_speed = None
+        self.max_dex = None
+
+    def __add__(self, other):
+        result = Equipment()
+        result.ac_bonus = self.ac_bonus + other.ac_bonus
+        result.ability_score_bonus = self.ability_score_bonus + other.ability_score_bonus
+        result.max_speed = min(filter(None, {self.max_speed, other.max_speed}))
+        result.max_dex = min(filter(None, {self.max_dex, other.max_dex}))
+        return result
+
+
+class God(object):
+    def __init__(
+        self,
+        name='',
+        description='',
+        alignment='',
+        domain=None,
+        symbol='',
+        source='',
+        table=''
+    ):
+        self.name = name
+        self.description = description
+        self.alignment = alignment
+        self.domain = domain or []
+        self.symbol = symbol
+        self.source = source
+        self.table = table
+
 
 
 class Race(object):
@@ -140,12 +204,12 @@ class Character(object):
     @property
     def mod(self):
         return AbilityScore(
-            (self.attributes.STR - 10) / 2,
-            (self.attributes.DEX - 10) / 2,
-            (self.attributes.CON - 10) / 2,
-            (self.attributes.WIS - 10) / 2,
-            (self.attributes.INT - 10) / 2,
-            (self.attributes.CHA - 10) / 2
+            int((self.attributes.STR - 10) / 2),
+            int((self.attributes.DEX - 10) / 2),
+            int((self.attributes.CON - 10) / 2),
+            int((self.attributes.WIS - 10) / 2),
+            int((self.attributes.INT - 10) / 2),
+            int((self.attributes.CHA - 10) / 2)
         )
 
     @property
